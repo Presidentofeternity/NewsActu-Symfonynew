@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="row">
+        <div class="col-12">
+            {% include 'include/_flashes.html.twig' %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-10 my-4 mx-auto">
+
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title text-center mb-5">{{ article.title }}</h1>
+                    <p class="h4 text-center mb-3 text-secondary">{{ article.subtitle }}</p>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-center">Créé le {{ article.createdAt | date('d/m/Y H:i') }}
+                        <span class="text-muted">
+                            | Mis à jour le {{ article.updatedAt | date('d/m/Y H:i') }} | Auteur : {{ article.author.prenom }} {{ article.author.nom }}
+                        </span>
+                    </li>
+                </ul>
+                <img class="img-custom" src="{{ asset('uploads/') ~ article.photo }}" alt="{{ article.title }}">
+                <div class="card-body">
+                    <p class="card-text my-4 col-10 mx-auto">{{ article.content | raw }}</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {% if app.user %}
+        {# {{ render(controller('App\\Controller\\CommentaryController::addCommentary', {'id': article.id} )) }}#}
+        {{ render(url('add_commentary', {'id': article.id}) ) }}
+    {% else %}
+        <div class="row">
+            <div class="col-8 mx-auto text-center my-3">
+                <p class="h4"> Vous devez être connecté pour commenter cet article </p>
+                <a class="d-block col-3 btn btn-warning mx-auto" href="{{ path('app_login') }}">Connexion</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <hr>
+
+    <h3>Espace Commentaires</h3>
+
+    {% if commentaries is not null %}
+
+        <div class="row">
+            <div class="col-5">
+
+                {% for commentary in commentaries %}
+                    {% if commentary.deletedAt is null %}
+
+                        <div class="bg-light shadow my-2">
+                            <p class="ps-3 text-muted">
+                                Créé le: {{ commentary.createdAt | date('d/m/Y') }} | Écrit par: {{ commentary.author ? commentary.author.prenom ~ ' ' ~ commentary.author.nom : "Pas d'auteur" }}
+
+                                {% if commentary.author is same as app.user %}
+                                    <span style="float: right" class="pe-2" onclick="return confirm('Voulez-vous archiver ce commentaire ? \rVous retrouverez ces commentaires dans la partie Mes commentaires de votre profil.')">
+
+                                        {#=========== 1ère FAÇON ============#
+                                            ==> SUITE du commentaire de: CommentaryController::softDeleteCommentary()
+                                            Ici nous avons construit grâce au symbole '?', dans le 'href' après le {{ path() }}, notre URL avec les arguments nécessaires pour le redirection (voir CommentaryController)
+                                        #}
+{#                                         <a href="{{ path('soft_delete_commentary', {'id': commentary.id}) }}?cat_alias={{ article.category.alias }}&article_alias={{ article.alias }}&article_id={{ article.id }}" class="text-danger"><i class="fa fa-times-circle"></i></a>#}
+                                        {#===================================#}
+
+                                        {#=========== 2ème FAÇON ============
+                                            ==> SUITE du commentaire de: CommentaryController::softDeleteCommentary()
+                                            Ici nous avons retiré tous les paramètres dans l'URL. (excepté le paramètre OBLIGATOIRE de la route {id})
+                                        #}
+                                        <a href="{{ path('soft_delete_commentary', {'id': commentary.id}) }}" class="text-danger"><i class="fa fa-times-circle"></i></a>
+                                        {#===================================#}
+                                    </span>
+                                {% endif %}
+
+                            </p>
+                            <p class="ps-3">{{ commentary.comment }}</p>
+                        </div>
+
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+
+    {% endif %}
+
+{% endblock %}
